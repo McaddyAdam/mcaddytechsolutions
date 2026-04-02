@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1775140609117",
+    "formType": "Contact Form",
+    "name": "Test User",
+    "email": "test@example.com",
+    "subject": "Hello Server",
+    "message": "Backend works!",
+    "submittedAt": "2026-04-02T14:36:49.118Z"
+  },
+  {
+    "id": "1775142092273",
+    "formType": "Contact Form",
+    "name": "Structural Test User",
+    "email": "structured@example.com",
+    "subject": "Testing structure",
+    "message": "Backend works after restructuring!",
+    "submittedAt": "2026-04-02T15:01:32.273Z"
+  }
+]
