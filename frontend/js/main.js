@@ -1,6 +1,20 @@
 (function ($) {
     "use strict";
 
+    // ── Pre-configuration ──────────────────────────────────────────────────────
+    // ⚠️ TODO: Replace with your actual EmailJS credentials
+    // You can find these in your EmailJS Dashboard (https://dashboard.emailjs.com/)
+    const EMAILJS_PUBLIC_KEY = 'o-ew1ujVotpaKUpdO'; // From "Account" page
+    const EMAILJS_SERVICE_ID = 'service_yr4w7ek'; // From "Email Services" page
+    const EMAILJS_TEMPLATE_ID = 'template_mcaddy_notification'; // From "Email Templates" page
+
+    // Initialize EmailJS
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+    } else {
+        console.error('EmailJS not found. Make sure the script is in index.html');
+    }
+
     // Spinner
     var spinner = function () {
         setTimeout(function () {
@@ -11,10 +25,8 @@
     };
     spinner();
     
-    
     // Initiate the wowjs
     new WOW().init();
-
 
     // Sticky Navbar
     $(window).scroll(function () {
@@ -34,201 +46,104 @@
     $(window).on("load resize", function() {
         if (this.matchMedia("(min-width: 992px)").matches) {
             $dropdown.hover(
-            function() {
-                const $this = $(this);
-                $this.addClass(showClass);
-                $this.find($dropdownToggle).attr("aria-expanded", "true");
-                $this.find($dropdownMenu).addClass(showClass);
-            },
-            function() {
-                const $this = $(this);
-                $this.removeClass(showClass);
-                $this.find($dropdownToggle).attr("aria-expanded", "false");
-                $this.find($dropdownMenu).removeClass(showClass);
-            }
+                function() {
+                    const $this = $(this);
+                    $this.addClass(showClass);
+                    $this.find($dropdownToggle).attr("aria-expanded", "true");
+                    $this.find($dropdownMenu).addClass(showClass);
+                },
+                function() {
+                    const $this = $(this);
+                    $this.removeClass(showClass);
+                    $this.find($dropdownToggle).attr("aria-expanded", "false");
+                    $this.find($dropdownMenu).removeClass(showClass);
+                }
             );
         } else {
             $dropdown.off("mouseenter mouseleave");
         }
     });
 
-
     // Facts counter
     $('[data-toggle="counter-up"]').counterUp({
         delay: 10,
         time: 2000
     });
+
+    // ── Email Automation with EmailJS ──────────────────────────────────────────
     
+    /**
+     * Helper to send notification to admin via EmailJS
+     * @param {Object} data - The form data
+     * @param {String} source - Identification of which form was used
+     */
+    async function sendAdminNotification(data, source) {
+        if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+            console.warn('⚠️  EmailJS not configured in main.js. Please fill in your keys.');
+            return;
+        }
+
+        const templateParams = {
+            source_form: source,
+            from_name: data.name || 'Subscriber',
+            from_email: data.email,
+            subject: data.subject || 'New Submission from Website',
+            message: data.message || 'New newsletter subscription!',
+            submitted_at: new Date().toLocaleString()
+        };
+
+        try {
+            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+            console.log(`[EmailJS] Notification sent for: ${source}`);
+        } catch (error) {
+            console.error('[EmailJS] FAILED to send notification:', error);
+        }
+    }
+
+    // ── Consolidated Form Handlers ─────────────────────────────────────────────
     
-    // Back to top button
-    $(window).scroll(function () {
-        if ($(this).scrollTop() > 100) {
-            $('.back-to-top').fadeIn('slow');
-        } else {
-            $('.back-to-top').fadeOut('slow');
-        }
-    });
-    $('.back-to-top').click(function () {
-        $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
-        return false;
-    });
-
-
-    // Testimonials carousel
-    $(".testimonial-carousel").owlCarousel({
-        autoplay: true,
-        smartSpeed: 1500,
-        dots: true,
-        loop: true,
-        center: true,
-        responsive: {
-            0:{
-                items:1
-            },
-            576:{
-                items:1
-            },
-            768:{
-                items:2
-            },
-            992:{
-                items:3
-            }
-        }
-    });
-
-
-    // Vendor carousel
-    $('.vendor-carousel').owlCarousel({
-        loop: true,
-        margin: 45,
-        dots: false,
-        loop: true,
-        autoplay: true,
-        smartSpeed: 1000,
-        responsive: {
-            0:{
-                items:2
-            },
-            576:{
-                items:4
-            },
-            768:{
-                items:6
-            },
-            992:{
-                items:8
-            }
-        }
-    });
-    
-    // Newsletter subscription functionality
     $(document).ready(function() {
-
-        $('#newsletterForm').on('submit', function(e) {
+        
+        // 1. Newsletter Subscription
+        $('#newsletterForm').on('submit', async function(e) {
             e.preventDefault();
-
-            const email = $('#newsletterEmail').val().trim();
+            const emailInput = $('#newsletterEmail');
+            const email = emailInput.val().trim();
             const messageDiv = $('#newsletterMessage');
-
-            // Clear previous messages
-            messageDiv.html('');
-
-            // Basic email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email) {
-                messageDiv.html('<span style="color: #ff6b6b;">Please enter your email address.</span>');
-                return;
-            }
-
-            if (!emailRegex.test(email)) {
-                messageDiv.html('<span style="color: #ff6b6b;">Please enter a valid email address.</span>');
-                return;
-            }
-
-            // Show loading state
             const submitBtn = $(this).find('button[type="submit"]');
-            const originalText = submitBtn.text();
-            submitBtn.prop('disabled', true).text('SUBSCRIBING...');
 
-            // Store subscriber locally (works immediately)
+            if (!email) return;
+
+            submitBtn.prop('disabled', true).text('...');
+            messageDiv.hide();
+
             try {
-                let subscribers = JSON.parse(localStorage.getItem('newsletter_subscribers') || '[]');
-
-                if (subscribers.includes(email)) {
-                    messageDiv.html('<span style="color: #ff6b6b;">This email is already subscribed.</span>');
-                    submitBtn.prop('disabled', false).text(originalText);
-                    return;
-                }
-
-                // Add new subscriber
-                subscribers.push({
-                    email: email,
-                    date: new Date().toISOString(),
-                    source: 'footer_form'
+                // Phase 1: Save to Database
+                const response = await fetch('/api/newsletter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
                 });
 
-                localStorage.setItem('newsletter_subscribers', JSON.stringify(subscribers));
-
-                // Show success message
-                messageDiv.html('<span style="color: #4CAF50;">Thank you for subscribing! We\'ll keep you updated.</span>');
-                $('#newsletterEmail').val(''); // Clear the input
-
-                // Optional: Open email client to notify admin (backup method)
-                setTimeout(function() {
-                    const subject = encodeURIComponent('New Newsletter Subscriber');
-                    const body = encodeURIComponent(`New subscriber: ${email}\nDate: ${new Date().toLocaleString()}\n\nTotal subscribers: ${subscribers.length}`);
-                    const mailtoLink = `mailto:admin@mcaddytechsolutions.com?subject=${subject}&body=${body}`;
-
-                    // Create a temporary link and click it (opens email client)
-                    const tempLink = document.createElement('a');
-                    tempLink.href = mailtoLink;
-                    tempLink.style.display = 'none';
-                    document.body.appendChild(tempLink);
-                    tempLink.click();
-                    document.body.removeChild(tempLink);
-                }, 1000);
-
-            } catch (error) {
-                messageDiv.html('<span style="color: #ff6b6b;">An error occurred. Please try again.</span>');
-            }
-        });
-    });
-
-    // Highlight Active Menu Item
-    $(document).ready(function () {
-        var currentUrl = window.location.pathname.split("/").pop();
-        if (currentUrl === "") {
-            currentUrl = "index.html";
-        }
-        
-        $('.navbar-nav .nav-link').removeClass('active');
-        $('.navbar-nav .dropdown-item').removeClass('active');
-        
-        var matchFound = false;
-
-        $('.navbar-nav a').each(function() {
-            var href = $(this).attr('href');
-            if (href === currentUrl) {
-                $(this).addClass('active');
-                
-                // If it's inside a dropdown, highlight the parent dropdown as well
-                if ($(this).hasClass('dropdown-item')) {
-                    $(this).closest('.dropdown').find('.dropdown-toggle').addClass('active');
+                if (response.ok) {
+                    // Phase 2: Send Automation via EmailJS
+                    await sendAdminNotification({ email: email }, 'Newsletter Form');
+                    
+                    messageDiv.html('<span style="color: #4CAF50;">✅ Subscribed successfully!</span>').fadeIn();
+                    emailInput.val('');
+                } else {
+                    const result = await response.json();
+                    messageDiv.html(`<span style="color: #ff6b6b;">${result.error || 'Failed to subscribe.'}</span>`).fadeIn();
                 }
-                matchFound = true;
+            } catch (err) {
+                console.error('Newsletter error:', err);
+                messageDiv.html('<span style="color: #ff6b6b;">Error connecting to database.</span>').fadeIn();
+            } finally {
+                submitBtn.prop('disabled', false).text('SUBSCRIBE');
             }
         });
-        
-        // Default to Home if root URL without index.html
-        if (!matchFound && window.location.pathname.endsWith('/')) {
-            $('.navbar-nav a[href="index.html"]').addClass('active');
-        }
-    });
 
-    // Form Submissions to Backend
-    $(document).ready(function() {
-        // Contact Form Handling
+        // 2. Contact Form
         $('#contactForm').on('submit', async function(e) {
             e.preventDefault();
             const btn = $(this).find('button[type="submit"]');
@@ -238,7 +153,7 @@
                 formType: 'Contact Form',
                 name: $('#contactName').val(),
                 email: $('#contactEmail').val(),
-                subject: $('#contactSubject').val() || '',
+                subject: $('#contactSubject').val(),
                 message: $('#contactMessage').val()
             };
             
@@ -251,57 +166,58 @@
                     body: JSON.stringify(data)
                 });
                 
-                const result = await response.json();
-                
                 if (response.ok) {
-                    msgDiv.html(`<span style="color: #4CAF50;">${result.message || 'Message sent successfully!'}</span>`);
+                    await sendAdminNotification(data, 'Contact Us Form');
+                    msgDiv.html('<span style="color: #4CAF50;">✅ Message sent successfully!</span>');
                     this.reset();
                 } else {
-                    msgDiv.html(`<span style="color: #ff6b6b;">${result.error || 'Failed to send message.'}</span>`);
+                    msgDiv.html('<span style="color: #ff6b6b;">Failed to send to database.</span>');
                 }
             } catch (err) {
-                msgDiv.html(`<span style="color: #ff6b6b;">Network error. Make sure the server.js backend is running.</span>`);
+                console.error('Contact error:', err);
+                msgDiv.html('<span style="color: #ff6b6b;">Connection error.</span>');
+            } finally {
+                btn.prop('disabled', false).text('Send Message');
             }
-            
-            btn.prop('disabled', false).text('Send Message');
         });
 
-        // Quote Form Handling
-        $('#quoteForm').on('submit', async function(e) {
+        // 3. Quote Form (Request Service)
+        $('#quoteForm, #homeQuoteForm').on('submit', async function(e) {
             e.preventDefault();
+            const isHome = this.id === 'homeQuoteForm';
             const btn = $(this).find('button[type="submit"]');
-            const msgDiv = $('#quoteFormMessage');
+            const msgDiv = isHome ? $('#homeQuoteFormMessage') : $('#quoteFormMessage');
             
             const data = {
-                formType: 'Quote Form',
-                name: $('#quoteName').val(),
-                email: $('#quoteEmail').val(),
-                subject: 'Service Requested: ' + $('#quoteService').val(),
-                message: $('#quoteMessage').val()
+                formType: isHome ? 'Home Page Quote Form' : 'Service Request Form',
+                name: $(this).find('input[type="text"]').first().val(),
+                email: $(this).find('input[type="email"]').val(),
+                subject: 'Service: ' + ($(this).find('select').val() || 'Request'),
+                message: $(this).find('textarea').val()
             };
             
             btn.prop('disabled', true).text('Sending...');
             
             try {
-                const response = await fetch('/api/contact', {
+                const response = await fetch('/api/quote', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 
-                const result = await response.json();
-                
                 if (response.ok) {
-                    msgDiv.html(`<span style="color: #4CAF50;">${result.message || 'Quote request sent successfully!'}</span>`);
+                    await sendAdminNotification(data, data.formType);
+                    msgDiv.html('<span style="color: #4CAF50;">✅ Request submitted successfully!</span>');
                     this.reset();
                 } else {
-                    msgDiv.html(`<span style="color: #ff6b6b;">${result.error || 'Failed to send request.'}</span>`);
+                    msgDiv.html('<span style="color: #ff6b6b;">Failed to submit.</span>');
                 }
             } catch (err) {
-                msgDiv.html(`<span style="color: #ff6b6b;">Network error. Make sure the server.js backend is running.</span>`);
+                console.error('Quote error:', err);
+                msgDiv.html('<span style="color: #ff6b6b;">Connection error.</span>');
+            } finally {
+                btn.prop('disabled', false).text(isHome ? 'Submit' : 'Request A Quote');
             }
-            
-            btn.prop('disabled', false).text('Submit Quote Request');
         });
     });
 
