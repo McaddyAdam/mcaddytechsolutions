@@ -122,5 +122,78 @@
         }
     });
     
-})(jQuery);
+    // Newsletter subscription functionality
+    $(document).ready(function() {
 
+        $('#newsletterForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const email = $('#newsletterEmail').val().trim();
+            const messageDiv = $('#newsletterMessage');
+
+            // Clear previous messages
+            messageDiv.html('');
+
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
+                messageDiv.html('<span style="color: #ff6b6b;">Please enter your email address.</span>');
+                return;
+            }
+
+            if (!emailRegex.test(email)) {
+                messageDiv.html('<span style="color: #ff6b6b;">Please enter a valid email address.</span>');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = $(this).find('button[type="submit"]');
+            const originalText = submitBtn.text();
+            submitBtn.prop('disabled', true).text('SUBSCRIBING...');
+
+            // Store subscriber locally (works immediately)
+            try {
+                let subscribers = JSON.parse(localStorage.getItem('newsletter_subscribers') || '[]');
+
+                if (subscribers.includes(email)) {
+                    messageDiv.html('<span style="color: #ff6b6b;">This email is already subscribed.</span>');
+                    submitBtn.prop('disabled', false).text(originalText);
+                    return;
+                }
+
+                // Add new subscriber
+                subscribers.push({
+                    email: email,
+                    date: new Date().toISOString(),
+                    source: 'footer_form'
+                });
+
+                localStorage.setItem('newsletter_subscribers', JSON.stringify(subscribers));
+
+                // Show success message
+                messageDiv.html('<span style="color: #4CAF50;">Thank you for subscribing! We\'ll keep you updated.</span>');
+                $('#newsletterEmail').val(''); // Clear the input
+
+                // Optional: Open email client to notify admin (backup method)
+                setTimeout(function() {
+                    const subject = encodeURIComponent('New Newsletter Subscriber');
+                    const body = encodeURIComponent(`New subscriber: ${email}\nDate: ${new Date().toLocaleString()}\n\nTotal subscribers: ${subscribers.length}`);
+                    const mailtoLink = `mailto:admin@mcaddytechsolutions.com?subject=${subject}&body=${body}`;
+
+                    // Create a temporary link and click it (opens email client)
+                    const tempLink = document.createElement('a');
+                    tempLink.href = mailtoLink;
+                    tempLink.style.display = 'none';
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
+                }, 1000);
+
+            } catch (error) {
+                messageDiv.html('<span style="color: #ff6b6b;">An error occurred. Please try again.</span>');
+            }
+        });
+    });
+
+})(jQuery);
+                

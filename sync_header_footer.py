@@ -6,7 +6,7 @@ start = text.index('<!-- Topbar Start -->')
 end = text.index('<!-- Full Screen Search End -->') + len('<!-- Full Screen Search End -->')
 header_block = text[start:end]
 fs = text.index('<!-- Footer Start -->')
-fe = text.index('<!-- Back to Top -->')
+fe = text.index('</html>')
 footer_block = text[fs:fe]
 changed_files=[]
 for f in root.glob('*.html'):
@@ -20,9 +20,9 @@ for f in root.glob('*.html'):
     else:
         print('skip header', f)
         continue
-    if '<!-- Footer Start -->' in page and '<!-- Back to Top -->' in page:
+    if '<!-- Footer Start -->' in page and '</html>' in page:
         s2 = page.index('<!-- Footer Start -->')
-        e2 = page.index('<!-- Back to Top -->')
+        e2 = page.index('</html>')
         page = page[:s2] + footer_block + page[e2:]
     else:
         print('skip footer', f)

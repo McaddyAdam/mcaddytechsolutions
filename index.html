@@ -49,7 +49,7 @@
                 <div class="d-inline-flex align-items-center" style="height: 45px;">
                     <small class="me-3 text-light"><i class="fa fa-map-marker-alt me-2"></i>Abeokuta, Ogun State, Nigeria</small>
                     <small class="me-3 text-light"><i class="fa fa-phone-alt me-2"></i>+2349130694355</small>
-                    <small class="text-light"><i class="fa fa-envelope-open me-2"></i>mcaddytechsolutions@gmail.com</small>
+                    <small class="text-light"><i class="fa fa-envelope-open me-2"></i>admin@mcaddytechsolutions.com</small>
                 </div>
             </div>
             <div class="col-lg-4 text-center text-lg-end">
@@ -803,11 +803,12 @@
                     <!-- Newsletter Signup -->
                     <div style="margin-bottom: 30px;">
                         <h6 style="font-size: 12px; font-weight: 700; color: #E6C77B; letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase;">Stay Updated</h6>
-                        <form action="" class="w-100">
+                        <form id="newsletterForm" class="w-100">
                             <div class="input-group" style="border-radius: 6px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                                <input type="email" class="form-control border-0 p-3" placeholder="Enter your email" style="font-size: 13px; background-color: white;">
-                                <button class="btn fw-bold px-4" type="button" style="background-color: #E6C77B; border: none; color: #061429; font-size: 12px; letter-spacing: 0.5px; font-weight: 700;">SUBSCRIBE</button>
+                                <input type="email" id="newsletterEmail" name="email" autocomplete="email" class="form-control border-0 p-3" placeholder="Enter your email" style="font-size: 13px; background-color: white;" required>
+                                <button class="btn fw-bold px-4" type="submit" style="background-color: #E6C77B; border: none; color: #061429; font-size: 12px; letter-spacing: 0.5px; font-weight: 700;">SUBSCRIBE</button>
                             </div>
+                            <div id="newsletterMessage" class="mt-2" style="font-size: 12px;"></div>
                         </form>
                     </div>
                     <!-- Social Links -->
@@ -934,6 +935,9 @@
     <script src="lib/waypoints/waypoints.min.js"></script>
     <script src="lib/counterup/counterup.min.js"></script>
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- EmailJS Library -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
