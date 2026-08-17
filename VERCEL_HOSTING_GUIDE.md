@@ -27,7 +27,7 @@ Vercel connects directly to your GitHub repository.
 1. In the Vercel project settings, verify the root directory is your repository root.
 2. Set the **Framework Preset** to **Other**.
 3. Ensure the **Build Command** is empty or set to `npm run vercel-build`.
-4. Ensure the **Output Directory** is empty.
+4. Set the **Output Directory** to `frontend` (this is also enforced by `vercel.json`).
 5. Add the following environment variables in Vercel:
    - `MAILTRAP_API_TOKEN` = `<your Mailtrap API token>`
    - `MAILTRAP_SANDBOX_ID` = `<your sandbox ID>` (optional, defaults to 0)
