@@ -10,31 +10,38 @@ I noticed you have a `CNAME` file and a GitHub repository link (`McaddyAdam/mcad
 ## 2. Recommended Hosting Platforms
 To host a Node.js server, you need a cloud provider. Here are the best beginner-friendly, free/low-cost options that integrate directly with your GitHub repository:
 
-### Option A: Render (Highest Recommendation)
+### Option A: Vercel (Recommended)
 * **Cost:** Free Tier available.
-* **Ease of Use:** Extremely easy. You connect your GitHub account, select the repository, and it automatically builds and runs `node server.js`.
-* **Custom Domain:** You can easily map `www.mcaddytechsolutions.com` in their settings.
+* **Ease of Use:** Very easy for static sites and Node.js API functions.
+* **Custom Domain:** Use Vercel's domain setup and point your DNS to Vercel.
 
 ### Option B: Railway.app or Heroku
 * **Cost:** Small monthly fee (few dollars).
 * **Pros:** Highly reliable, does not "sleep" after inactivity like free tiers do.
 
-## 3. 🚨 CRITICAL CLOUD WARNING: The Data Loss Problem
-Currently, our backend saves form data to a local file called `submissions.json`. 
+## 3. � Vercel + Mailtrap Hosting
+Your app is now designed for Vercel deployment with email delivery via Mailtrap. Forms are sent through the backend API and do not rely on a database.
 
-When you host an app on cloud platforms like Render or Heroku, they use **Ephemeral Filesystems**. This means every time the server restarts, undergoes maintenance, or deploys an update, **your `submissions.json` file will be completely wiped out and reset to zero.** You will lose all your customer requests.
+### Required Vercel environment variables
+Add these values in your Vercel project settings:
 
-### How to Fix This Before Deploying:
-Before you launch this to `www.mcaddytechsolutions.com`, we **must** upgrade your storage method. We have two great options:
+- `MAILTRAP_HOST` = `smtp.mailtrap.io`
+- `MAILTRAP_PORT` = `2525`
+- `MAILTRAP_USER` = `<your Mailtrap username>`
+- `MAILTRAP_PASS` = `<your Mailtrap password>`
+- `MAIL_FROM` = `no-reply@mcaddytechsolutions.com`
+- `MAILTRAP_TO` = `contact@mcaddytechsolutions.com`
 
-1. **Cloud Database (MongoDB Atlas):** We can replace `submissions.json` with a free cloud database. The data will live safely in the cloud forever, and I can set this up for you very quickly.
-2. **Email Forwarding (Nodemailer):** Instead of saving to a file, we can configure the Node.js server to instantly forward the submitted forms directly to your email address (e.g., `info@mcaddytechsolutions.com`).
+### Why this setup is safer
+- No local file storage (`submissions.json`) is used in production.
+- No MongoDB database is required.
+- Mailtrap captures outgoing emails for testing before you switch to a real SMTP account.
 
 ---
 
 ## Next Steps
 
-1. Decide how you want to handle the form data in production (Database vs. Email).
-2. Create an account on [Render.com](https://render.com/).
-3. Connect your GitHub repository to Render and deploy it as a "Web Service".
-4. Update your Domain Registrar (Godaddy, Namecheap, etc.) DNS settings to point to the Render server.
+1. Create an account on [Vercel.com](https://vercel.com/).
+2. Connect your GitHub repository to Vercel and deploy it using the `/api` functions and `vercel.json` routing.
+3. Add the Mailtrap environment variables listed above.
+4. Update your DNS settings with your domain registrar once the Vercel deployment is live.

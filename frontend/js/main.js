@@ -2,18 +2,7 @@
     "use strict";
 
     // ── Pre-configuration ──────────────────────────────────────────────────────
-    // ⚠️ TODO: Replace with your actual EmailJS credentials
-    // You can find these in your EmailJS Dashboard (https://dashboard.emailjs.com/)
-    const EMAILJS_PUBLIC_KEY = 'o-ew1ujVotpaKUpdO'; // From "Account" page
-    const EMAILJS_SERVICE_ID = 'service_yr4w7ek'; // From "Email Services" page
-    const EMAILJS_TEMPLATE_ID = 'template_mcaddy_notification'; // From "Email Templates" page
-
-    // Initialize EmailJS
-    if (typeof emailjs !== 'undefined') {
-        emailjs.init(EMAILJS_PUBLIC_KEY);
-    } else {
-        console.error('EmailJS not found. Make sure the script is in index.html');
-    }
+    // No client-side email service is required. Forms submit directly to the backend API.
 
     // Spinner
     var spinner = function () {
@@ -70,36 +59,6 @@
         time: 2000
     });
 
-    // ── Email Automation with EmailJS ──────────────────────────────────────────
-    
-    /**
-     * Helper to send notification to admin via EmailJS
-     * @param {Object} data - The form data
-     * @param {String} source - Identification of which form was used
-     */
-    async function sendAdminNotification(data, source) {
-        if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
-            console.warn('⚠️  EmailJS not configured in main.js. Please fill in your keys.');
-            return;
-        }
-
-        const templateParams = {
-            source_form: source,
-            from_name: data.name || 'Subscriber',
-            from_email: data.email,
-            subject: data.subject || 'New Submission from Website',
-            message: data.message || 'New newsletter subscription!',
-            submitted_at: new Date().toLocaleString()
-        };
-
-        try {
-            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-            console.log(`[EmailJS] Notification sent for: ${source}`);
-        } catch (error) {
-            console.error('[EmailJS] FAILED to send notification:', error);
-        }
-    }
-
     // ── Consolidated Form Handlers ─────────────────────────────────────────────
     
     $(document).ready(function() {
@@ -118,17 +77,13 @@
             messageDiv.hide();
 
             try {
-                // Phase 1: Save to Database
-                const response = await fetch('/api/newsletter', {
+                        const response = await fetch('/api/newsletter', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: email })
                 });
 
                 if (response.ok) {
-                    // Phase 2: Send Automation via EmailJS
-                    await sendAdminNotification({ email: email }, 'Newsletter Form');
-                    
                     messageDiv.html('<span style="color: #4CAF50;">✅ Subscribed successfully!</span>').fadeIn();
                     emailInput.val('');
                 } else {
@@ -137,7 +92,7 @@
                 }
             } catch (err) {
                 console.error('Newsletter error:', err);
-                messageDiv.html('<span style="color: #ff6b6b;">Error connecting to database.</span>').fadeIn();
+                messageDiv.html('<span style="color: #ff6b6b;">Error sending subscription request.</span>').fadeIn();
             } finally {
                 submitBtn.prop('disabled', false).text('SUBSCRIBE');
             }
@@ -167,11 +122,10 @@
                 });
                 
                 if (response.ok) {
-                    await sendAdminNotification(data, 'Contact Us Form');
                     msgDiv.html('<span style="color: #4CAF50;">✅ Message sent successfully!</span>');
                     this.reset();
                 } else {
-                    msgDiv.html('<span style="color: #ff6b6b;">Failed to send to database.</span>');
+                    msgDiv.html('<span style="color: #ff6b6b;">Failed to send.</span>');
                 }
             } catch (err) {
                 console.error('Contact error:', err);
@@ -206,7 +160,6 @@
                 });
                 
                 if (response.ok) {
-                    await sendAdminNotification(data, data.formType);
                     msgDiv.html('<span style="color: #4CAF50;">✅ Request submitted successfully!</span>');
                     this.reset();
                 } else {

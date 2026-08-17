@@ -37,8 +37,7 @@ You should see the terminal successfully respond with:
 =========================================
 🚀 Mcaddy Tech Backend is running!
 🌐 Accessible at: http://localhost:3000
-📋 Submissions will be saved to: submissions.json
 =========================================
 ```
 
-You can now leave the terminal open in the background! Any contact forms submitted on `http://localhost:3000` will be pushed through to your API and auto-saved in the `backend/submissions.json` file.
+You can now leave the terminal open in the background! Any contact forms submitted on `http://localhost:3000` will be sent through Mailtrap using your configured SMTP environment variables.
