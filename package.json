@@ -2,6 +2,7 @@
   "name": "mcaddytechsolutions",
   "private": true,
   "scripts": {
+    "start": "serve frontend -l 3000",
     "vercel-build": "echo \"No build step required\""
   },
   "dependencies": {
