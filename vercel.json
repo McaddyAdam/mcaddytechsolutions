@@ -6,5 +6,11 @@
     "api/*.js": {
       "runtime": "nodejs20.x"
     }
-  }
+  },
+  "routes": [
+    { "src": "/api/contact", "dest": "/api/contact.js" },
+    { "src": "/api/quote", "dest": "/api/quote.js" },
+    { "src": "/api/newsletter", "dest": "/api/newsletter.js" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
+  ]
 }
