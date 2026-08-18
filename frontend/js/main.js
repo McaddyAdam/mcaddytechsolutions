@@ -1,8 +1,12 @@
 (function ($) {
     "use strict";
 
-    // ── Pre-configuration ──────────────────────────────────────────────────────
-    // No client-side email service is required. Forms submit directly to the backend API.
+    // EmailJS configuration
+    const EMAILJS_SERVICE_ID = 'service_yr4w7ek';
+    const EMAILJS_TEMPLATE_ID = 'template_06z0nqi';
+    const EMAILJS_PUBLIC_KEY = '30T2_xK0T6hsn5uR5';
+
+    emailjs.init(EMAILJS_PUBLIC_KEY);
 
     // Spinner
     var spinner = function () {
@@ -64,7 +68,7 @@
     $(document).ready(function() {
         
         // 1. Newsletter Subscription
-        $('#newsletterForm').on('submit', async function(e) {
+        $('#newsletterForm').on('submit', function(e) {
             e.preventDefault();
             const emailInput = $('#newsletterEmail');
             const email = emailInput.val().trim();
@@ -76,101 +80,75 @@
             submitBtn.prop('disabled', true).text('...');
             messageDiv.hide();
 
-            try {
-                        const response = await fetch('/api/newsletter', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email })
-                });
-
-                if (response.ok) {
-                    messageDiv.html('<span style="color: #4CAF50;">✅ Subscribed successfully!</span>').fadeIn();
-                    emailInput.val('');
-                } else {
-                    const result = await response.json();
-                    messageDiv.html(`<span style="color: #ff6b6b;">${result.error || 'Failed to subscribe.'}</span>`).fadeIn();
-                }
-            } catch (err) {
-                console.error('Newsletter error:', err);
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                form_type: 'Newsletter Subscription',
+                from_name: 'Newsletter Subscriber',
+                from_email: email,
+                subject: 'Newsletter Subscription',
+                message: 'A user subscribed to the newsletter with email: ' + email
+            }).then(function() {
+                messageDiv.html('<span style="color: #4CAF50;">✅ Subscribed successfully!</span>').fadeIn();
+                emailInput.val('');
+            }).catch(function() {
                 messageDiv.html('<span style="color: #ff6b6b;">Error sending subscription request.</span>').fadeIn();
-            } finally {
+            }).finally(function() {
                 submitBtn.prop('disabled', false).text('SUBSCRIBE');
-            }
+            });
         });
 
         // 2. Contact Form
-        $('#contactForm').on('submit', async function(e) {
+        $('#contactForm').on('submit', function(e) {
             e.preventDefault();
-            const btn = $(this).find('button[type="submit"]');
+            const form = this;
+            const btn = $(form).find('button[type="submit"]');
             const msgDiv = $('#contactFormMessage');
-            
-            const data = {
-                formType: 'Contact Form',
-                name: $('#contactName').val(),
-                email: $('#contactEmail').val(),
-                subject: $('#contactSubject').val(),
-                message: $('#contactMessage').val()
-            };
-            
+
             btn.prop('disabled', true).text('Sending...');
-            
-            try {
-                const response = await fetch('/api/contact', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                if (response.ok) {
-                    msgDiv.html('<span style="color: #4CAF50;">✅ Message sent successfully!</span>');
-                    this.reset();
-                } else {
-                    msgDiv.html('<span style="color: #ff6b6b;">Failed to send.</span>');
-                }
-            } catch (err) {
-                console.error('Contact error:', err);
-                msgDiv.html('<span style="color: #ff6b6b;">Connection error.</span>');
-            } finally {
+
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                form_type: 'Contact Form',
+                from_name: $('#contactName').val(),
+                from_email: $('#contactEmail').val(),
+                subject: $('#contactSubject').val() || 'Contact Form Submission',
+                message: $('#contactMessage').val()
+            }).then(function() {
+                msgDiv.html('<span style="color: #4CAF50;">✅ Message sent successfully!</span>');
+                form.reset();
+            }).catch(function() {
+                msgDiv.html('<span style="color: #ff6b6b;">Failed to send. Please try again.</span>');
+            }).finally(function() {
                 btn.prop('disabled', false).text('Send Message');
-            }
+            });
         });
 
         // 3. Quote Form (Request Service)
-        $('#quoteForm, #homeQuoteForm').on('submit', async function(e) {
+        $('#quoteForm, #homeQuoteForm').on('submit', function(e) {
             e.preventDefault();
-            const isHome = this.id === 'homeQuoteForm';
-            const btn = $(this).find('button[type="submit"]');
+            const form = this;
+            const isHome = form.id === 'homeQuoteForm';
+            const btn = $(form).find('button[type="submit"]');
             const msgDiv = isHome ? $('#homeQuoteFormMessage') : $('#quoteFormMessage');
-            
-            const data = {
-                formType: isHome ? 'Home Page Quote Form' : 'Service Request Form',
-                name: $(this).find('input[type="text"]').first().val(),
-                email: $(this).find('input[type="email"]').val(),
-                subject: 'Service: ' + ($(this).find('select').val() || 'Request'),
-                message: $(this).find('textarea').val()
-            };
-            
+            const name = isHome ? $('#homeQuoteName').val() : $('#quoteName').val();
+            const email = isHome ? $('#homeQuoteEmail').val() : $('#quoteEmail').val();
+            const service = isHome ? $('#homeQuoteService').val() : $('#quoteService').val();
+            const message = isHome ? $('#homeQuoteMessage').val() : $('#quoteMessage').val();
+
             btn.prop('disabled', true).text('Sending...');
-            
-            try {
-                const response = await fetch('/api/quote', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                if (response.ok) {
-                    msgDiv.html('<span style="color: #4CAF50;">✅ Request submitted successfully!</span>');
-                    this.reset();
-                } else {
-                    msgDiv.html('<span style="color: #ff6b6b;">Failed to submit.</span>');
-                }
-            } catch (err) {
-                console.error('Quote error:', err);
-                msgDiv.html('<span style="color: #ff6b6b;">Connection error.</span>');
-            } finally {
-                btn.prop('disabled', false).text(isHome ? 'Submit' : 'Request A Quote');
-            }
+
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                form_type: isHome ? 'Home Quote Form' : 'Service Request Form',
+                from_name: name,
+                from_email: email,
+                subject: 'Service Request: ' + (service || 'General'),
+                message: message
+            }).then(function() {
+                msgDiv.html('<span style="color: #4CAF50;">✅ Request submitted successfully!</span>');
+                form.reset();
+            }).catch(function() {
+                msgDiv.html('<span style="color: #ff6b6b;">Failed to submit. Please try again.</span>');
+            }).finally(function() {
+                btn.prop('disabled', false).text(isHome ? 'Submit' : 'Submit Quote Request');
+            });
         });
     });
 
