@@ -2,11 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "frontend",
-  "functions": {
-    "api/*.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "routes": [
     { "src": "/api/contact", "dest": "/api/contact.js" },
     { "src": "/api/quote", "dest": "/api/quote.js" },
